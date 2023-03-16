@@ -68,7 +68,7 @@ resource "azurerm_virtual_network_peering" "melbourne-canberra" {
 
 // Configure firewall in hub network
 resource "azurerm_subnet" "hub_firewall" {
-    name = "hub-subnet"
+    name = "AzureFirewallSubnet'"
   address_prefixes = [
     cidrsubnet(azurerm_virtual_network.canberra.address_space[0], 2, 0)
   ]
