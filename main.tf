@@ -72,6 +72,6 @@ resource "azurerm_subnet" "hub_firewall" {
     cidrsubnet(azurerm_virtual_network.canberra.address_space[0], 2, 0)
   ]
   resource_group_name = azurerm_resource_group.canberra.name
-  virtual_network_name = azurerm_resource_group.canberra.name
+  virtual_network_name = azurerm_virtual_network.canberra.name
 
 }
