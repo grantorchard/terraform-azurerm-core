@@ -1,4 +1,4 @@
-output "resource_groups" {
+output "resource_group_names" {
   value = {
     "sydney" = azurerm_resource_group.sydney.name,
     "melbourne" = azurerm_resource_group.melbourne.name,
@@ -6,7 +6,7 @@ output "resource_groups" {
   }
 }
 
-output "workload_subnets" {
+output "workload_subnet_ids" {
   value = {
     "sydney" = azurerm_subnet.sydney_workloads.id,
     "melbourne" = azurerm_subnet.melbourne_workloads.id,
