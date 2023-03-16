@@ -43,6 +43,36 @@ resource "azurerm_virtual_network" "canberra" {
   address_space = [local.address_space.canberra]
 }
 
+resource "azurerm_subnet" "canberra_workloads" {
+    name = "canberra-workloads"
+  address_prefixes = [
+    cidrsubnet(azurerm_virtual_network.canberra.address_space[0], 2, 1)
+  ]
+  resource_group_name = azurerm_resource_group.canberra.name
+  virtual_network_name = azurerm_virtual_network.canberra.name
+
+}
+
+resource "azurerm_subnet" "sydney_workloads" {
+    name = "sydney-workloads"
+  address_prefixes = [
+    cidrsubnet(azurerm_virtual_network.sydney.address_space[0], 2, 1)
+  ]
+  resource_group_name = azurerm_resource_group.sydney.name
+  virtual_network_name = azurerm_virtual_network.sydney.name
+
+}
+
+resource "azurerm_subnet" "melbourne_workloads" {
+    name = "melbourne-workloads"
+  address_prefixes = [
+    cidrsubnet(azurerm_virtual_network.melbourne.address_space[0], 2, 1)
+  ]
+  resource_group_name = azurerm_resource_group.melbourne.name
+  virtual_network_name = azurerm_virtual_network.melbourne.name
+
+}
+
 // Configure Peering
 resource "azurerm_virtual_network_peering" "sydney-canberra" {
   name                         = "peering-sydney-to-canberra"
@@ -97,4 +127,23 @@ resource "azurerm_firewall" "hub" {
     subnet_id            = azurerm_subnet.hub_firewall.id
     public_ip_address_id = azurerm_public_ip.hub_firewall.id
   }
+}
+
+// Route tables
+resource "azurerm_route_table" "sydney_to_canberra" {
+  name                          = "sydney-to-canberra"
+  location                      = azurerm_virtual_network.sydney.location
+  resource_group_name           = azurerm_resource_group.sydney.name
+  disable_bgp_route_propagation = false
+
+  route {
+    name           = "canberra"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type  = "VirtualAppliance"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "sydney" {
+  subnet_id      = azurerm_subnet.sydney_workloads
+  route_table_id = azurerm_route_table.sydney_to_canberra.id
 }
