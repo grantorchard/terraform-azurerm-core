@@ -144,6 +144,24 @@ resource "azurerm_route_table" "sydney_to_canberra" {
 }
 
 resource "azurerm_subnet_route_table_association" "sydney" {
-  subnet_id      = azurerm_subnet.sydney_workloads
+  subnet_id      = azurerm_subnet.sydney_workloads.id
   route_table_id = azurerm_route_table.sydney_to_canberra.id
+}
+
+resource "azurerm_route_table" "melbourne_to_canberra" {
+  name                          = "sydney-to-canberra"
+  location                      = azurerm_virtual_network.melbourne.location
+  resource_group_name           = azurerm_resource_group.melbourne.name
+  disable_bgp_route_propagation = false
+
+  route {
+    name           = "canberra"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type  = "VirtualAppliance"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "melbourne" {
+  subnet_id      = azurerm_subnet.melbourne_workloads.id
+  route_table_id = azurerm_route_table.melbourne_to_canberra.id
 }
