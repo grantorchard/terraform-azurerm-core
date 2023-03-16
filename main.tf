@@ -65,3 +65,13 @@ resource "azurerm_virtual_network_peering" "melbourne-canberra" {
 
   allow_gateway_transit = false
 }
+
+resource "azurerm_subnet" "hub_firewall" {
+    name = "hub-subnet"
+  address_prefixes = [
+    cidrsubnet(azurerm_virtual_network.canberra.address_space, 2, 0)
+  ]
+  resource_group_name = azurerm_resource_group.canberra.name
+  virtual_network_name = azurerm_resource_group.canberra.name
+
+}
