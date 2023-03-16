@@ -140,6 +140,7 @@ resource "azurerm_route_table" "sydney_to_canberra" {
     name           = "canberra"
     address_prefix = "0.0.0.0/0"
     next_hop_type  = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.hub.ip_configuration.private_ip_address
   }
 }
 
@@ -158,6 +159,7 @@ resource "azurerm_route_table" "melbourne_to_canberra" {
     name           = "canberra"
     address_prefix = "0.0.0.0/0"
     next_hop_type  = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.hub.ip_configuration.private_ip_address
   }
 }
 
