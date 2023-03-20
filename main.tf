@@ -1,169 +1,43 @@
-locals {
-  address_space = {
-    sydney = "10.0.0.0/24"
-    melbourne = "10.0.1.0/24"
-    canberra = "10.0.3.0/24"
-  }
-}
+module "hub" {
+  source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
+  version = "0.0.3"
 
-resource "azurerm_resource_group" "sydney" {
-    name = "sydney"
-    location = "Australia East"
-}
+  location = "Australia Central"
 
-resource "azurerm_resource_group" "canberra" {
-    name = "canberra"
-    location = "Australia Central"
-}
-
-resource "azurerm_resource_group" "melbourne" {
-    name = "melbourne"
-    location = "Australia Southeast"
-}
-
-/// Networks
-resource "azurerm_virtual_network" "sydney" {
-  resource_group_name = azurerm_resource_group.sydney.name
-  location = azurerm_resource_group.sydney.location
-  name = "vnet-sydney"
-  address_space = [local.address_space.sydney]
-}
-
-resource "azurerm_virtual_network" "melbourne" {
-  resource_group_name = azurerm_resource_group.melbourne.name
-  location = azurerm_resource_group.melbourne.location
-  name = "vnet-melbourne"
-  address_space = [local.address_space.melbourne]
-}
-
-resource "azurerm_virtual_network" "canberra" {
-  resource_group_name = azurerm_resource_group.canberra.name
-  location = azurerm_resource_group.canberra.location
-  name = "vnet-canberra"
-  address_space = [local.address_space.canberra]
-}
-
-resource "azurerm_subnet" "canberra_workloads" {
-    name = "canberra-workloads"
-  address_prefixes = [
-    cidrsubnet(azurerm_virtual_network.canberra.address_space[0], 2, 1)
+  network_type = "hub"
+  name_prefix = "hub"
+  address_space = "10.0.0.0/24"
+  subnet_functions = [
+    "Firewall",
+    "Management",
+    "Gateway"
   ]
-  resource_group_name = azurerm_resource_group.canberra.name
-  virtual_network_name = azurerm_virtual_network.canberra.name
-
 }
 
-resource "azurerm_subnet" "sydney_workloads" {
-    name = "sydney-workloads"
-  address_prefixes = [
-    cidrsubnet(azurerm_virtual_network.sydney.address_space[0], 2, 1)
+module "spoke_sydney" {
+  source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
+
+  network_type = "spoke"
+  name_prefix = "sydney"
+  address_space = "10.0.1.0/24"
+  subnet_functions = [
+    "workload"
   ]
-  resource_group_name = azurerm_resource_group.sydney.name
-  virtual_network_name = azurerm_virtual_network.sydney.name
-
+  location = "Australia East"
+  peering_ip_address = module.hub.hub_firewall_private_ip
+  peering_network_id = module.hub.hub_virtual_network_id
 }
 
-resource "azurerm_subnet" "melbourne_workloads" {
-    name = "melbourne-workloads"
-  address_prefixes = [
-    cidrsubnet(azurerm_virtual_network.melbourne.address_space[0], 2, 1)
+module "spoke_melbourne" {
+    version = "0.0.3"
+
+  network_type = "spoke"
+  name_prefix = "melbourne"
+  address_space = "10.0.2.0/24"
+  subnet_functions = [
+    "workload"
   ]
-  resource_group_name = azurerm_resource_group.melbourne.name
-  virtual_network_name = azurerm_virtual_network.melbourne.name
-
-}
-
-// Configure Peering
-resource "azurerm_virtual_network_peering" "sydney-canberra" {
-  name                         = "peering-sydney-to-canberra"
-  resource_group_name          = azurerm_resource_group.sydney.name
-  virtual_network_name         = azurerm_virtual_network.sydney.name
-  remote_virtual_network_id    = azurerm_virtual_network.canberra.id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-
-  allow_gateway_transit = false
-}
-
-resource "azurerm_virtual_network_peering" "melbourne-canberra" {
-  name                         = "peering-melbourne-to-canberra"
-  resource_group_name          = azurerm_resource_group.melbourne.name
-  virtual_network_name         = azurerm_virtual_network.melbourne.name
-  remote_virtual_network_id    = azurerm_virtual_network.canberra.id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-
-  allow_gateway_transit = false
-}
-
-// Configure firewall in hub network
-resource "azurerm_subnet" "hub_firewall" {
-    name = "AzureFirewallSubnet"
-  address_prefixes = [
-    cidrsubnet(azurerm_virtual_network.canberra.address_space[0], 2, 0)
-  ]
-  resource_group_name = azurerm_resource_group.canberra.name
-  virtual_network_name = azurerm_virtual_network.canberra.name
-
-}
-
-resource "azurerm_public_ip" "hub_firewall" {
-  name                = "hub-firewall-ip"
-  location            = azurerm_resource_group.canberra.location
-  resource_group_name = azurerm_resource_group.canberra.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_firewall" "hub" {
-  name                = "hub-firewall"
-  location            = azurerm_resource_group.canberra.location
-  resource_group_name = azurerm_resource_group.canberra.name
-  sku_name            = "AZFW_VNet"
-  sku_tier            = "Standard"
-
-  ip_configuration {
-    name                 = "configuration"
-    subnet_id            = azurerm_subnet.hub_firewall.id
-    public_ip_address_id = azurerm_public_ip.hub_firewall.id
-  }
-}
-
-// Route tables
-resource "azurerm_route_table" "sydney_to_canberra" {
-  name                          = "sydney-to-canberra"
-  location                      = azurerm_virtual_network.sydney.location
-  resource_group_name           = azurerm_resource_group.sydney.name
-  disable_bgp_route_propagation = false
-
-  route {
-    name           = "canberra"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type  = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.hub.ip_configuration[0].private_ip_address
-  }
-}
-
-resource "azurerm_subnet_route_table_association" "sydney" {
-  subnet_id      = azurerm_subnet.sydney_workloads.id
-  route_table_id = azurerm_route_table.sydney_to_canberra.id
-}
-
-resource "azurerm_route_table" "melbourne_to_canberra" {
-  name                          = "sydney-to-canberra"
-  location                      = azurerm_virtual_network.melbourne.location
-  resource_group_name           = azurerm_resource_group.melbourne.name
-  disable_bgp_route_propagation = false
-
-  route {
-    name           = "canberra"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type  = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.hub.ip_configuration[0].private_ip_address
-  }
-}
-
-resource "azurerm_subnet_route_table_association" "melbourne" {
-  subnet_id      = azurerm_subnet.melbourne_workloads.id
-  route_table_id = azurerm_route_table.melbourne_to_canberra.id
+  location = "Australia Southeast"
+  peering_ip_address = module.hub.hub_firewall_private_ip
+  peering_network_id = module.hub.hub_virtual_network_id
 }
