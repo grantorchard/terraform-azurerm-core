@@ -16,6 +16,7 @@ module "hub" {
 
 module "spoke_sydney" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
+  version = "0.0.3"
 
   network_type = "spoke"
   name_prefix = "sydney"
@@ -29,7 +30,8 @@ module "spoke_sydney" {
 }
 
 module "spoke_melbourne" {
-    version = "0.0.3"
+  source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
+  version = "0.0.3"
 
   network_type = "spoke"
   name_prefix = "melbourne"
