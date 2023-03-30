@@ -17,3 +17,7 @@ output "sydney_subnet_ids" {
 output "melbourne_subnet_ids" {
   value = module.spoke_melbourne.subnet_ids
 }
+
+output "container_pull_service_principal_id" {
+  value = azuread_service_principal.container_pull.id
+}

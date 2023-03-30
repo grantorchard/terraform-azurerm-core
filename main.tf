@@ -52,3 +52,18 @@ resource "azurerm_container_registry" "this" {
   sku                 = "Premium"
   admin_enabled       = false
 }
+
+resource "azuread_application" "container_pull" {
+  display_name = "DAFFServicePrincipal"
+}
+
+resource "azuread_service_principal" "container_pull" {
+  application_id = azuread_application.container_pull.id
+}
+
+resource "azurerm_role_assignment" "container_pull" {
+  scope                = data.azurerm_subscription.this.id
+  principal_id = azuread_application.container_pull
+  role_definition_name = "AcrPull"
+
+}
