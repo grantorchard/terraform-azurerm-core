@@ -45,10 +45,10 @@ module "spoke_melbourne" {
 }
 
 
-# resource "azurerm_container_registry" "this" {
-#   name                = "DAFFContainerRegistry"
-#   resource_group_name = module.hub.management_resource_group_name
-#   location            = module.hub.management_resource_group_location
-#   sku                 = "Premium"
-#   admin_enabled       = false
-# }
+resource "azurerm_container_registry" "this" {
+  name                = "DAFFContainerRegistry"
+  resource_group_name = module.hub.management_resource_group_name
+  location            = module.hub.management_resource_group_location
+  sku                 = "Premium"
+  admin_enabled       = false
+}
