@@ -43,3 +43,12 @@ module "spoke_melbourne" {
   peering_ip_address = module.hub.hub_firewall_private_ip
   peering_network_id = module.hub.hub_virtual_network_id
 }
+
+
+resource "azurerm_container_registry" "this" {
+  name                = "${local.prefix}-container-registry"
+  resource_group_name = module.hub.management_resource_group_name
+  location            = module.hub.management_resource_group_location
+  sku                 = "Premium"
+  admin_enabled       = false
+}
