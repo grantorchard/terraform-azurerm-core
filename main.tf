@@ -62,7 +62,7 @@ resource "azuread_service_principal" "container_pull" {
 }
 
 resource "azurerm_role_assignment" "container_pull" {
-  scope                = data.azurerm_subscription.this.id
+  scope                = azurerm_container_registry.this.id
   principal_id = azuread_application.container_pull
   role_definition_name = "AcrPull"
 
