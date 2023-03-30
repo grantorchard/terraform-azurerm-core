@@ -58,7 +58,7 @@ resource "azuread_application" "container_pull" {
 }
 
 resource "azuread_service_principal" "container_pull" {
-  application_id = azuread_application.container_pull.id
+  application_id = azuread_application.container_pull.application_id
 }
 
 resource "azurerm_role_assignment" "container_pull" {
