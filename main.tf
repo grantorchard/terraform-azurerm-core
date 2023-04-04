@@ -1,6 +1,6 @@
 module "hub" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.3"
+  version = "0.0.5"
 
   location = "Australia Central"
 
@@ -12,11 +12,15 @@ module "hub" {
     "Management",
     "Gateway"
   ]
+  tags = {
+    "DoNotDelete" = "true"
+    "owner" = "go"
+  }
 }
 
 module "spoke_sydney" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.3"
+  version = "0.0.5"
 
   network_type = "spoke"
   name_prefix = "sydney"
@@ -26,12 +30,16 @@ module "spoke_sydney" {
   ]
   location = "Australia East"
   peering_ip_address = module.hub.hub_firewall_private_ip
-  peering_network_id = module.hub.hub_virtual_network_id
+  peering_vnet_id = module.hub.hub_virtual_network_id
+  tags = {
+    "DoNotDelete" = "true"
+    "owner" = "go"
+  }
 }
 
 module "spoke_melbourne" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.3"
+  version = "0.0.5"
 
   network_type = "spoke"
   name_prefix = "melbourne"
@@ -41,7 +49,11 @@ module "spoke_melbourne" {
   ]
   location = "Australia Southeast"
   peering_ip_address = module.hub.hub_firewall_private_ip
-  peering_network_id = module.hub.hub_virtual_network_id
+  peering_vnet_id = module.hub.hub_virtual_network_id
+  tags = {
+    "DoNotDelete" = "true"
+    "owner" = "go"
+  }
 }
 
 
