@@ -3,11 +3,11 @@ output "hub_subnet_ids" {
 }
 
 output "canberra_resource_group_name" {
-  value = module.hub.management_resource_group_name
+  value = module.hub.resource_group_name
 }
 
 output "canberra_resource_group_location" {
-  value = module.hub.management_resource_group_location
+  value = module.hub.resource_group_location
 }
 
 output "sydney_subnet_ids" {

@@ -1,6 +1,6 @@
 module "hub" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.5"
+  version = "0.0.6"
 
   location = "Australia Central"
 
@@ -20,7 +20,7 @@ module "hub" {
 
 module "spoke_sydney" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.5"
+  version = "0.0.6"
 
   network_type = "spoke"
   name_prefix = "sydney"
@@ -29,8 +29,8 @@ module "spoke_sydney" {
     "workload"
   ]
   location = "Australia East"
-  peering_ip_address = module.hub.hub_firewall_private_ip
-  peering_vnet_id = module.hub.hub_virtual_network_id
+  peering_ip_address = module.hub.firewall_private_ip
+  peering_vnet_id = module.hub.virtual_network_id
   tags = {
     "DoNotDelete" = "true"
     "owner" = "go"
@@ -39,7 +39,7 @@ module "spoke_sydney" {
 
 module "spoke_melbourne" {
   source  = "app.terraform.io/tfo-apj-demos/networks/azurerm"
-  version = "0.0.5"
+  version = "0.0.6"
 
   network_type = "spoke"
   name_prefix = "melbourne"
@@ -48,8 +48,10 @@ module "spoke_melbourne" {
     "workload"
   ]
   location = "Australia Southeast"
-  peering_ip_address = module.hub.hub_firewall_private_ip
-  peering_vnet_id = module.hub.hub_virtual_network_id
+  peering_ip_address = module.hub.firewall_private_ip
+  peering_vnet_id = module.hub.virtual_network_id
+  peering_vnet_name = module.hub.virtual_network_name
+  peering_resource_group_name = module.hub.resource_group_name
   tags = {
     "DoNotDelete" = "true"
     "owner" = "go"
@@ -59,8 +61,8 @@ module "spoke_melbourne" {
 
 resource "azurerm_container_registry" "this" {
   name                = "DAFFContainerRegistry"
-  resource_group_name = module.hub.management_resource_group_name
-  location            = module.hub.management_resource_group_location
+  resource_group_name = module.hub.resource_group_name
+  location            = module.hub.resource_group_location
   sku                 = "Premium"
   admin_enabled       = false
 }
