@@ -31,6 +31,8 @@ module "spoke_sydney" {
   location = "Australia East"
   peering_ip_address = module.hub.firewall_private_ip
   peering_vnet_id = module.hub.virtual_network_id
+  peering_vnet_name = module.hub.virtual_network_name
+  peering_resource_group_name = module.hub.resource_group_name
   tags = {
     "DoNotDelete" = "true"
     "owner" = "go"
